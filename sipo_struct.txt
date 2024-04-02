@@ -1,0 +1,46 @@
+//Design Code
+module d_ffpe(output reg q,output wire qbar,input clk,d,pre,clr);
+  reg q1;
+  always@(posedge clk)
+    begin
+      q1<=d;
+    end
+  assign q = pre ? 1'b1	: (clr ? 1'b0 : q1);
+  assign qbar=~q;
+endmodule
+
+module SIPO_reg(output reg q1,q2,q3,out, input clk,in,pre,clr);
+  d_ffpe ff1(q1,,clk,in,pre,clr);
+  d_ffpe ff2(q2,,clk,q1,pre,clr);
+  d_ffpe ff3(q3,,clk,q2,pre,clr);
+  d_ffpe ff4(out,,clk,q3,pre,clr);
+endmodule
+
+//Test Bench Code
+module tb();
+  reg clk,in,pre,clr;
+  wire q1,q2,q3,out;
+  SIPO_reg dut(q1,q2,q3,out,clk,in,pre,clr);
+  initial
+    begin
+      clk=1'b0;
+      forever #5 clk=~clk;
+    end
+  initial
+    begin
+      pre=1'b0;
+      clr=1'b0;
+      #5;
+      @(negedge clk) in=1'b1;
+      @(negedge clk) in=1'b0;
+      @(negedge clk) in=1'b1;
+      @(negedge clk) in=1'b0;
+      @(negedge clk) in=1'b1;
+      $finish;
+    end
+  initial
+    begin
+      $dumpfile("test.vcd");
+      $dumpvars(1);
+    end
+endmodule
